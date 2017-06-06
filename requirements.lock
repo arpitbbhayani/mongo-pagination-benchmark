@@ -1,0 +1,4 @@
+Faker==0.7.15
+pymongo==3.4.0
+python-dateutil==2.6.0
+six==1.10.0
