@@ -16,6 +16,7 @@ def benchmark_skiplimit(count, page_size):
     """Fetches all documents from the collection page-wise
     """
     setup(count)
+    run_count = 3
 
     times = []
 
@@ -23,7 +24,8 @@ def benchmark_skiplimit(count, page_size):
 
     while True:
         start_time = time.time()
-        data = fetch.skiplimit(page_size, page_number)
+        for i in range(run_count):
+            data = fetch.skiplimit(page_size, page_number)
         end_time = time.time()
 
         if not data:
@@ -33,7 +35,7 @@ def benchmark_skiplimit(count, page_size):
         page_number += 1
 
         # Appending time to fetch the page
-        times.append(end_time - start_time)
+        times.append((end_time - start_time)/run_count)
 
     # asserting all items fetched from the collection
     assert items_fetched == count
@@ -44,6 +46,7 @@ def benchmark_skiplimit(count, page_size):
 
 def benchmark_idlimit(count, page_size):
     setup(count)
+    run_count = 3
 
     times = []
 
@@ -51,9 +54,14 @@ def benchmark_idlimit(count, page_size):
     last_id = None
 
     while True:
+
         start_time = time.time()
-        data, last_id = fetch.idlimit(page_size, last_id)
+        for i in range(run_count):
+            data, new_last_id = fetch.idlimit(page_size, last_id)
         end_time = time.time()
+
+        # Update the last_id
+        last_id = new_last_id
 
         if not data:
             break
@@ -62,7 +70,7 @@ def benchmark_idlimit(count, page_size):
         page_number += 1
 
         # Appending time to fetch the page
-        times.append(end_time - start_time)
+        times.append((end_time - start_time)/run_count)
 
     # asserting all items fetched from the collection
     assert items_fetched == count
@@ -73,7 +81,7 @@ def benchmark_idlimit(count, page_size):
 
 def print_stats(times, count, page_size, approach):
     s = stats.all(times)
-    print("\"{}\",{},{},{}".format(approach, count, page_size, s['mean']))
+    print("\"{}\",{},{},{},{},{},{}".format(approach, count, page_size, s['mean'], s['p99'], s['p95'], s['p50']))
 
 
 def bench(count, page_size):
@@ -87,7 +95,7 @@ def bench(count, page_size):
 
 
 if __name__ == '__main__':
-    print("\"{}\",\"{}\",\"{}\",\"{}\"".format("Approach", "Count", "Page Size", "Mean (in microseconds)"))
+    print("\"{}\",\"{}\",\"{}\",\"{}\",\"{}\",\"{}\",\"{}\"".format("Approach", "Count", "Page Size", "Mean (in microseconds)", "p99 (in microseconds)", "p95 (in microseconds)", "p50 (in microseconds)"))
 
     for count in range(5, 701, 5):
         for page_size in range(10, 101, 10):
